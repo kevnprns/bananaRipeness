@@ -5,6 +5,7 @@ from imageIO import *
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import time
 
 # uses open cv contour to find objects in the scene and
@@ -89,36 +90,71 @@ def convertToRedness(filename, writeFname):
     print ("\tReading file")
     redCh, greenCh, blueCh = imread_colour(filename)
 
-    newImage = np.zeros(redCh.shape,dtype=np.int16)
+    rgbIm = cv2.imread(filename)
 
-    newImageBlue = redCh * 0 ; # orange filter
-    newImageGreen = redCh * 0 ; # orange filter
+    hsvIm = cv2.cvtColor(rgbIm, cv2.COLOR_RGB2HSV)
 
-    print ("\tConverting to redness")
-    newImage = ((3.5 * redCh) + (2 * greenCh)) - ((2 * greenCh) + blueCh); # orange included filter
-    # newImage = (3 * redCh) - (greenCh + blueCh); # red filter
+    # h, s, v = cv2.split(hsvIm)
 
-    maximum = 0;
-    for i in range(0,redCh.shape[0]):
-        newImage[i][newImage[i] < 300] = 0 # anything below 400 is set to 0.
-        newMax = max(newImage[i])
+    # h, s, v = cv2.split(hsvIm)
+    # fig = plt.figure()
 
-        if newMax > maximum:
-            maximum = newMax
+    # ax = Axes3D(fig)
+
+    # axis = fig.add_subplot(1, 1, 1, projection="3d")
+    #
+    # axis.scatter(h.flatten(), s.flatten(), v.flatten(), marker=".")
+    # axis.set_xlabel("Hue")
+    # axis.set_ylabel("Saturation")
+    # axis.set_zlabel("Value")
+    # plt.show()
+
+    yellow = (20, 70, 0)
+    green = (120, 255, 255)
 
 
-    divider = 1
-    if maximum > 255: # if the values range higher than scale them between 0 and 255
-        divider = maximum / 255
+    mask = cv2.inRange(hsvIm, yellow, green)
 
-    newImage = newImage / divider
+    result = cv2.bitwise_and(rgbIm, rgbIm, mask=mask)
 
-    imwrite_gray(writeFname,newImage)
-    # imwrite_colour("rednessColoured.jpg",newImage, newImageGreen, newImageBlue)
+    plt.subplot(1, 2, 1)
+    plt.imshow(mask, cmap="gray")
+    plt.subplot(1, 2, 2)
+    plt.imshow(result)
+    plt.show()
+
+    #
+    # newImage = np.zeros(redCh.shape,dtype=np.int16)
+    #
+    # newImageBlue = redCh * 0 ; # orange filter
+    # newImageGreen = redCh * 0 ; # orange filter
+    #
+    # print ("\tConverting to redness")
+    # newImage = ((3.5 * redCh) + (2 * greenCh)) - ((2 * greenCh) + blueCh); # orange included filter
+    # # newImage = (3 * redCh) - (greenCh + blueCh); # red filter
+    #
+    # maximum = 0;
+    # for i in range(0,redCh.shape[0]):
+    #     newImage[i][newImage[i] < 300] = 0 # anything below 400 is set to 0.
+    #     newMax = max(newImage[i])
+    #
+    #     if newMax > maximum:
+    #         maximum = newMax
+    #
+    #
+    # divider = 1
+    # if maximum > 255: # if the values range higher than scale them between 0 and 255
+    #     divider = maximum / 255
+    #
+    # newImage = newImage / divider
+    #
+    # imwrite_gray(writeFname,newImage)
+    # # imwrite_colour("rednessColoured.jpg",newImage, newImageGreen, newImageBlue)
 
 
 imageList = ["banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg","banana6.jpg",
-             "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg"]
+             "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
+             "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"]
 
             # ["citrus1.jpg","citrus2.jpg","citrus3.jpg","citrus4.jpg","citrus5.jpg","citrus6.jpg","citrus7.jpg","citrus8.jpg",
                         # "tomato1.jpg","tomato2.jpg","tomato3.jpg","tomato4.jpg","tomato6.jpg","tomato7.jpg","tomato8.jpg",
@@ -136,8 +172,9 @@ for imagePath in imageList:
 
     convertToRedness(originalFname, redFname);
     print("Finished Redness Conversion")
-    fruitRecognition(redFname, originalFname, processedFname);
-    print("Finished Fruit Recognition")
-    # laplacianFilter(processedFname, );
+    # fruitRecognition(redFname, originalFname, processedFname);
+    # print("Finished Fruit Recognition")
+
+
     # circleRecognition(processedFname, circledFname);
     # print("Finished Circle Detection\n\n")
