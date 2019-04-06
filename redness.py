@@ -94,22 +94,11 @@ def convertToRedness(filename, writeFname):
 
     hsvIm = cv2.cvtColor(rgbIm, cv2.COLOR_RGB2HSV)
 
-    # h, s, v = cv2.split(hsvIm)
+    h, s, v = cv2.split(hsvIm)
 
-    # h, s, v = cv2.split(hsvIm)
-    # fig = plt.figure()
+    print h
 
-    # ax = Axes3D(fig)
-
-    # axis = fig.add_subplot(1, 1, 1, projection="3d")
-    #
-    # axis.scatter(h.flatten(), s.flatten(), v.flatten(), marker=".")
-    # axis.set_xlabel("Hue")
-    # axis.set_ylabel("Saturation")
-    # axis.set_zlabel("Value")
-    # plt.show()
-
-    yellow = (20, 70, 0)
+    yellow = (40, 90, 30)
     green = (120, 255, 255)
 
 
@@ -117,13 +106,15 @@ def convertToRedness(filename, writeFname):
 
     result = cv2.bitwise_and(rgbIm, rgbIm, mask=mask)
 
-    plt.subplot(1, 2, 1)
-    plt.imshow(mask, cmap="gray")
-    plt.subplot(1, 2, 2)
-    plt.imshow(result)
-    plt.show()
 
-    #
+
+    # plt.subplot(1, 2, 1)
+    # plt.imshow(mask, cmap="gray")
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(result)
+    # plt.show()
+
+
     # newImage = np.zeros(redCh.shape,dtype=np.int16)
     #
     # newImageBlue = redCh * 0 ; # orange filter
@@ -148,7 +139,8 @@ def convertToRedness(filename, writeFname):
     #
     # newImage = newImage / divider
     #
-    # imwrite_gray(writeFname,newImage)
+
+    cv2.imwrite(writeFname,result)
     # # imwrite_colour("rednessColoured.jpg",newImage, newImageGreen, newImageBlue)
 
 
@@ -164,15 +156,15 @@ for imagePath in imageList:
     imageName = imagePath.split('.')
     print(imageName)
     originalFname = "images/fruit_Images/" + imageName[0] + "." + imageName[1]
-    redFname = "images/redness/" + imageName[0] + "_redness." + imageName[1]
+    thresholdFname = "images/threshold/" + imageName[0] + "_threshold." + imageName[1]
     processedFname = "images/processed/" + imageName[0] + "_processed." + imageName[1]
     circledFname = "images/circled/" + imageName[0] + "_circled." + imageName[1]
 
     print("Beggining fruit detection for " + imageName[0] + "\n")
 
-    convertToRedness(originalFname, redFname);
+    convertToRedness(originalFname, thresholdFname);
     print("Finished Redness Conversion")
-    # fruitRecognition(redFname, originalFname, processedFname);
+    fruitRecognition(thresholdFname, originalFname, processedFname);
     # print("Finished Fruit Recognition")
 
 
