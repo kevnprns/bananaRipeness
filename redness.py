@@ -11,38 +11,6 @@ import time
 # uses open cv contour to find objects in the scene and
 # then eliminates the smaller and insignificant objects dependent on their ratio to the window.
 
-def circleRecognition(filename, writeFname):
-
-    img = cv2.imread(filename,0)
-    img = cv2.medianBlur(img,7)
-    cimg = cv2.cvtColor(img,cv2.COLOR_GRAY2BGR)
-
-    height, width = img.shape
-
-    myRatio = width/8 ## modify number dependent on average number you think is in the picture.
-
-    c1 = 50
-    c2 = 32 ## increase number to find less random/covered circles
-    minR = 0
-    maxR = 400
-
-    print ("\tFinding Hough Circles")
-    circles = cv2.HoughCircles(img,cv2.HOUGH_GRADIENT,1,myRatio,1,param1=c1,param2=c2, minRadius=minR, maxRadius=maxR)
-                            # (image, method, dp, minDist[, circles[, param1[, param2[, minRadius[, maxRadius]]]]])
-
-    circles = np.uint16(np.around(circles))
-
-    print ("\tDrawing Circles")
-    for i in circles[0,:]:
-        # draw the outer circle
-        cv2.circle(cimg,(i[0],i[1]),i[2],(0,255,0),2)
-        # draw the center of the circle
-        cv2.circle(cimg,(i[0],i[1]),2,(0,0,255),3)
-
-    print ("\tFound " + str(len(circles[0])) + " fruits")
-
-    cv2.imwrite(writeFname, cimg);
-
 def fruitRecognition(filename, originalFname, writeFname):
     print ("in canny")
     img_rgb = cv2.imread(originalFname,0)
@@ -94,13 +62,14 @@ def convertToRedness(filename, writeFname):
 
     hsvIm = cv2.cvtColor(rgbIm, cv2.COLOR_RGB2HSV)
 
+    hsvIm = cv2.blur(hsvIm,(5,5))
+
     h, s, v = cv2.split(hsvIm)
 
     print h
 
     yellow = (40, 90, 30)
     green = (120, 255, 255)
-
 
     mask = cv2.inRange(hsvIm, yellow, green)
 
