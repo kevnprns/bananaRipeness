@@ -53,6 +53,47 @@ def laplacianFilter(filename):
     cv2.Laplacian(laplacian,cv2.CV_64F)
     cv2.imwrite("laplacian.jpg", laplacian);
 
+def getLabPercentages(img, height, width):
+    bananaPixels = brownPixels = yellowPixels = greenPixels = 0
+    for i in range(height):
+        for j in range(width):
+            print(img[i][j])
+            l,a,b = img[i][j]
+            print("l:", l)
+            print("a:", a)
+            print("b:", b)
+            a = a - 128
+            b = b - 128
+            l = (l * 100)/255
+            print("l2:", l)
+            print("a2:", a)
+            print("b2:", b)
+            if l < 100 and l > 0:
+                if a >  15 and b < 58 and l > 19:
+                    brownPixels = brownPixels + 1
+                elif a < 18 and b > 47 and a > -7:
+                    yellowPixels = yellowPixels + 1
+                elif a < -7:
+                    greenPixels = greenPixels + 1
+                bananaPixels = bananaPixels + 1
+                # if a is less than 18 and b greater than 47 and a > -7 -> yellow
+                # if a < -7 -> green
+                # b negative -> blue, positive yellow
+    return yellowPixels/bananaPixels * 100, greenPixels/bananaPixels * 100, brownPixels/bananaPixels * 100, 
+
+def analyzeImages():
+    images = ["banana1.jpg", "banana2.jpg", "banana3.jpeg", "banana4.jpeg"]
+    for image in images:
+        imageName = image.split('.')
+        filename = "images/threshold/" + imageName[0] + "_threshold." + imageName[1]
+        print(filename)
+        img = cv2.imread(filename)
+        height, width = img.shape[:2]
+        lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB) 
+        cv2.imshow('image',img)
+        cv2.waitKey(0)
+        print(getLabPercentages(lab, height, width))
+
 def convertToRedness(filename, writeFname):
 
     print ("\tReading file")
@@ -113,10 +154,10 @@ def convertToRedness(filename, writeFname):
     # # imwrite_colour("rednessColoured.jpg",newImage, newImageGreen, newImageBlue)
 
 
-imageList = ["banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg","banana6.jpg",
-             "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
-             "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"]
-
+#imageList = ["banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg","banana6.jpg",
+ #            "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
+  #           "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"]
+imageList = ["banana1.jpg", "banana2.jpg", "banana3.jpeg", "banana4.jpeg"]
             # ["citrus1.jpg","citrus2.jpg","citrus3.jpg","citrus4.jpg","citrus5.jpg","citrus6.jpg","citrus7.jpg","citrus8.jpg",
                         # "tomato1.jpg","tomato2.jpg","tomato3.jpg","tomato4.jpg","tomato6.jpg","tomato7.jpg","tomato8.jpg",
                         # ]
@@ -134,6 +175,7 @@ for imagePath in imageList:
     convertToRedness(originalFname, thresholdFname);
     print("Finished Redness Conversion")
     fruitRecognition(thresholdFname, originalFname, processedFname);
+analyzeImages()
     # print("Finished Fruit Recognition")
 
 
