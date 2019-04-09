@@ -101,7 +101,14 @@ def analyzeImages(imageList):
         img = cv2.imread(filename)
         height, width = img.shape[:2]
         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-        print(getLabPercentages(lab, height, width))
+        green, yellow, brown = getLabPercentages(lab, height, width)
+
+        if green > 35:
+            print "Under Ripe"
+        elif brown > 80:
+            print "Over Ripe"
+        else:
+            print "Ripe"
 
 def convertToRedness(filename, writeFname):
 
@@ -145,8 +152,8 @@ def convertToRedness(filename, writeFname):
 imageList = [
             "banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg",
             "banana6.jpg",
-             # "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
-             # "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"
+             "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
+             "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"
              ]
 
 
