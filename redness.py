@@ -15,6 +15,7 @@ def fruitRecognition(filename, originalFname, writeFname):
     print ("in canny")
     img_rgb = cv2.imread(originalFname,0)
     img = cv2.imread(filename)
+    img = cv2.medianBlur(img,7)
     edges = cv2.Canny(img,215,255)
 
     height, width, channels = img.shape
@@ -38,7 +39,7 @@ def fruitRecognition(filename, originalFname, writeFname):
             if abs(cArea) > areaThreshold:
                 contourList.append(c)
 
-    # final = cv2.drawContours(img, contourList, -1, (255,0, 0), 3)
+    final = cv2.drawContours(img, contourList, -1, (255,0, 0), 3)
 
     mask = np.zeros(img_rgb.shape,np.uint8)
     new_image = cv2.drawContours(mask,contourList,-1,255,-1,)
@@ -46,12 +47,15 @@ def fruitRecognition(filename, originalFname, writeFname):
 
     cv2.imwrite(writeFname, new_image);
 
-def laplacianFilter(filename):
-    img = cv2.imread(filename,0)
-    laplacian = img.copy()
+def subtractBackground(img):
 
-    cv2.Laplacian(laplacian,cv2.CV_64F)
-    cv2.imwrite("laplacian.jpg", laplacian);
+    fgbg = cv2.createBackgroundSubtractorMOG2()
+
+
+    fgmask = fgbg.apply(img)
+    fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
+    cv2.imshow('frame',fgmask)
+
 
 def convertToRedness(filename, writeFname):
 
@@ -68,58 +72,54 @@ def convertToRedness(filename, writeFname):
 
     print h
 
-    yellow = (40, 90, 30)
+    yellow = (40, 100, 30)
     green = (120, 255, 255)
 
-    mask = cv2.inRange(hsvIm, yellow, green)
+    # Range for greens
+    lowerGreen = np.array([90,90,70])
+    upperGreen = np.array([130,255,255])
+    mask1 = cv2.inRange(hsvIm, lowerGreen, upperGreen)
 
-    result = cv2.bitwise_and(rgbIm, rgbIm, mask=mask)
+    # Range for yellows
+    lowerYellow = np.array([40,170,100])
+    upperYellow = np.array([90,255,255])
+    mask2 = cv2.inRange(hsvIm, lowerYellow, upperYellow)
+
+    # mask = cv2.inRange(hsvIm, yellow, green)
+    mask = mask1+mask2
+
+    mask1 = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
+    mask1 = cv2.morphologyEx(mask, cv2.MORPH_DILATE, np.ones((3,3),np.uint8))
+    #creating an inverted mask to segment out the cloth from the frame
+    mask2 = cv2.bitwise_not(mask1)
+    #Segmenting the cloth out of the frame using bitwise and with the inverted mask
+    result = cv2.bitwise_and(rgbIm,rgbIm,mask=mask2)
 
 
 
-    # plt.subplot(1, 2, 1)
-    # plt.imshow(mask, cmap="gray")
-    # plt.subplot(1, 2, 2)
-    # plt.imshow(result)
-    # plt.show()
+    # result = cv2.bitwise_and(rgbIm, rgbIm, mask=mask)
+    # subtractBackground(result)
 
-
-    # newImage = np.zeros(redCh.shape,dtype=np.int16)
+    # edges = cv2.Canny(result,215,255)
     #
-    # newImageBlue = redCh * 0 ; # orange filter
-    # newImageGreen = redCh * 0 ; # orange filter
+    # height, width, channels = result.shape
+    # imageArea = width * height
+    # areaThreshold = imageArea / 1100
     #
-    # print ("\tConverting to redness")
-    # newImage = ((3.5 * redCh) + (2 * greenCh)) - ((2 * greenCh) + blueCh); # orange included filter
-    # # newImage = (3 * redCh) - (greenCh + blueCh); # red filter
+    # edges = cv2.convertScaleAbs(edges)
     #
-    # maximum = 0;
-    # for i in range(0,redCh.shape[0]):
-    #     newImage[i][newImage[i] < 300] = 0 # anything below 400 is set to 0.
-    #     newMax = max(newImage[i])
+    # kernel = np.ones((3,3), np.uint8)
+    # dilated_image = cv2.dilate(edges,kernel,iterations=1)
     #
-    #     if newMax > maximum:
-    #         maximum = newMax
-    #
-    #
-    # divider = 1
-    # if maximum > 255: # if the values range higher than scale them between 0 and 255
-    #     divider = maximum / 255
-    #
-    # newImage = newImage / divider
-    #
+    # contours, _  = cv2.findContours(dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    # contours= sorted(contours, key = cv2.contourArea, reverse = True)
 
     cv2.imwrite(writeFname,result)
-    # # imwrite_colour("rednessColoured.jpg",newImage, newImageGreen, newImageBlue)
-
 
 imageList = ["banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg","banana6.jpg",
              "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
              "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"]
 
-            # ["citrus1.jpg","citrus2.jpg","citrus3.jpg","citrus4.jpg","citrus5.jpg","citrus6.jpg","citrus7.jpg","citrus8.jpg",
-                        # "tomato1.jpg","tomato2.jpg","tomato3.jpg","tomato4.jpg","tomato6.jpg","tomato7.jpg","tomato8.jpg",
-                        # ]
 
 for imagePath in imageList:
     imageName = imagePath.split('.')
@@ -132,10 +132,8 @@ for imagePath in imageList:
     print("Beggining fruit detection for " + imageName[0] + "\n")
 
     convertToRedness(originalFname, thresholdFname);
-    print("Finished Redness Conversion")
+    print("Finished Color Conversion")
     fruitRecognition(thresholdFname, originalFname, processedFname);
     # print("Finished Fruit Recognition")
 
-
-    # circleRecognition(processedFname, circledFname);
-    # print("Finished Circle Detection\n\n")
+cv2.destroyAllWindows()
