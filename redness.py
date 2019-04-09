@@ -72,42 +72,24 @@ def getLabPercentages(img, height, width):
 
     bananaPixels = brownPixels = yellowPixels = greenPixels = 0.0
 
-    maxa = 0
-    mina = 1000
-
-    maxl = 0
-    minl = 1000
-
-    maxb = 0
-    minb = 1000
-
-
     for i in range(height):
         for j in range(width):
             l,a,b = img[i][j]
-
-
-
 
             a = a - 128
             b = b - 128
             l = (l * 100)/255
 
-
             if l < 100 and l > 0:
                 # if i==339 and j==224:
                 #     print("{0} {1} {2}".format( l, a, b))
-                if a >  9 and b < 48.5 and l >= 10:
-                    brownPixels = brownPixels + 1
-                elif a <= 9 and b > -35 and a > -20:
+                if a <= 9 and b > 50 and a >= -16:
                     yellowPixels = yellowPixels + 1
+                elif a >  9 and b < 48.5 and l >= 10:
+                    brownPixels = brownPixels + 1
                 elif a <= -5:
                     greenPixels = greenPixels + 1
-                # if a > 15:
-                # elif a <= 15 and a >:
-                # elif
-                bananaPixels = bananaPixels + 1
-
+    bananaPixels = yellowPixels + brownPixels + greenPixels
     return greenPixels/bananaPixels * 100, yellowPixels/bananaPixels * 100, brownPixels/bananaPixels * 100,
 
 def analyzeImages(imageList):
@@ -118,7 +100,7 @@ def analyzeImages(imageList):
         print "\nAnalysing: " + filename
         img = cv2.imread(filename)
         height, width = img.shape[:2]
-        lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         print(getLabPercentages(lab, height, width))
 
 def convertToRedness(filename, writeFname):
