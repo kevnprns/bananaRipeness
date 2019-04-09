@@ -54,20 +54,13 @@ def laplacianFilter(filename):
     cv2.imwrite("laplacian.jpg", laplacian);
 
 def getLabPercentages(img, height, width):
-    bananaPixels = brownPixels = yellowPixels = greenPixels = 0
+    bananaPixels = brownPixels = yellowPixels = greenPixels = 0.0
     for i in range(height):
         for j in range(width):
-            print(img[i][j])
             l,a,b = img[i][j]
-            print("l:", l)
-            print("a:", a)
-            print("b:", b)
             a = a - 128
             b = b - 128
             l = (l * 100)/255
-            print("l2:", l)
-            print("a2:", a)
-            print("b2:", b)
             if l < 100 and l > 0:
                 if a >  15 and b < 58 and l > 19:
                     brownPixels = brownPixels + 1
@@ -76,9 +69,6 @@ def getLabPercentages(img, height, width):
                 elif a < -7:
                     greenPixels = greenPixels + 1
                 bananaPixels = bananaPixels + 1
-                # if a is less than 18 and b greater than 47 and a > -7 -> yellow
-                # if a < -7 -> green
-                # b negative -> blue, positive yellow
     return yellowPixels/bananaPixels * 100, greenPixels/bananaPixels * 100, brownPixels/bananaPixels * 100, 
 
 def analyzeImages():
@@ -90,8 +80,6 @@ def analyzeImages():
         img = cv2.imread(filename)
         height, width = img.shape[:2]
         lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB) 
-        cv2.imshow('image',img)
-        cv2.waitKey(0)
         print(getLabPercentages(lab, height, width))
 
 def convertToRedness(filename, writeFname):
