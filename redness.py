@@ -68,21 +68,28 @@ def subtractBackground(img):
     fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
     cv2.imshow('frame',fgmask)
 
+'''
+    getLabPercentages
+    Description: Returns the percentage of green, yellow and brown in the image (ignoring white and black)
+    IN: img (the image), height (int), width (int)
+    OUT: greenPixelPercentage(float), yellowPixelPercentage(float), brownPixelPercentage(float)
+    POST: the percentages have been returned
+'''
 def getLabPercentages(img, height, width):
-
     bananaPixels = brownPixels = yellowPixels = greenPixels = 0.0
-
     for i in range(height):
         for j in range(width):
-            l,a,b = img[i][j]
 
+            # Reference current pixel
+            l,a,b = img[i][j]
+            
+            # Change the L a b values into manageable ones
             a = a - 128
             b = b - 128
             l = (l * 100)/255
 
+            # Ignore black and white
             if l < 100 and l > 0:
-                # if i==339 and j==224:
-                #     print("{0} {1} {2}".format( l, a, b))
                 if a <= 9 and b > 50 and a >= -16:
                     yellowPixels = yellowPixels + 1
                 elif a >  9 and b < 48.5 and l >= 10:
@@ -92,8 +99,14 @@ def getLabPercentages(img, height, width):
     bananaPixels = yellowPixels + brownPixels + greenPixels
     return greenPixels/bananaPixels * 100, yellowPixels/bananaPixels * 100, brownPixels/bananaPixels * 100,
 
+'''
+    analyzeImages
+    Description: Analyzes the images after preprocessing and the color segmentation.
+    IN: the image list 
+    OUT: none
+    POST: the images have been analyzed
+'''
 def analyzeImages(imageList):
-    # images = ["banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg"]
     for image in imageList:
         imageName = image.split('.')
         filename = "images/threshold/" + imageName[0] + "_threshold." + imageName[1]
