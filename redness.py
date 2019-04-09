@@ -57,6 +57,35 @@ def subtractBackground(img):
     cv2.imshow('frame',fgmask)
 
 
+def getLabPercentages(img, height, width):
+    bananaPixels = brownPixels = yellowPixels = greenPixels = 0.0
+    for i in range(height):
+        for j in range(width):
+            l,a,b = img[i][j]
+            a = a - 128
+            b = b - 128
+            l = (l * 100)/255
+            if l < 100 and l > 0:
+                if a >  15 and b < 58 and l > 19:
+                    brownPixels = brownPixels + 1
+                elif a < 18 and b > 47 and a > -7:
+                    yellowPixels = yellowPixels + 1
+                elif a < -7:
+                    greenPixels = greenPixels + 1
+                bananaPixels = bananaPixels + 1
+    return yellowPixels/bananaPixels * 100, greenPixels/bananaPixels * 100, brownPixels/bananaPixels * 100,
+
+def analyzeImages():
+    images = ["banana1.jpg", "banana2.jpg", "banana3.jpeg", "banana4.jpeg"]
+    for image in images:
+        imageName = image.split('.')
+        filename = "images/threshold/" + imageName[0] + "_threshold." + imageName[1]
+        print(filename)
+        img = cv2.imread(filename)
+        height, width = img.shape[:2]
+        lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+        print(getLabPercentages(lab, height, width))
+
 def convertToRedness(filename, writeFname):
 
     print ("\tReading file")
@@ -134,6 +163,7 @@ for imagePath in imageList:
     convertToRedness(originalFname, thresholdFname);
     print("Finished Color Conversion")
     fruitRecognition(thresholdFname, originalFname, processedFname);
+analyzeImages()
     # print("Finished Fruit Recognition")
 
 cv2.destroyAllWindows()
