@@ -151,13 +151,13 @@ def performColourThreshold(filename, writeFname):
     upperYellow = np.array([75,255,255])
     mask2 = cv2.inRange(hsvIm, lowerYellow, upperYellow)
 
-    # Range for yellows
+    # Range for browns
     lowerBrown = np.array([30,0,0])
     upperBrown = np.array([130,255,140])
     mask3 = cv2.inRange(hsvIm, lowerBrown, upperBrown)
 
     # each mask is created and added together to threshold different colour ranges in the image.
-    mask = mask1+mask2 + mask3
+    mask = mask1 + mask2 + mask3
 
     # the processed image is modified with the mask to result in a threshold image.
     result = cv2.bitwise_and(rgbIm, rgbIm, mask=mask)
