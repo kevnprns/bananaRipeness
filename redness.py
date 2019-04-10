@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2
+originalImage#!/usr/local/bin/python2
 
 from imageIO import *
 # from imenh_lib import *
@@ -11,34 +11,35 @@ import time
 # uses open cv contour to find objects in the scene and
 # then eliminates the smaller and insignificant objects dependent on their ratio to the window.
 
-def fruitRecognition(originalFname, writeFname):
-    print ("in canny")
-    # img_rgb = cv2.imread(originalFname,0)
-    img_rgb = cv2.imread(originalFname)
-    img = cv2.imread(originalFname)
-    # img = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+def preProcessImage(filename, writeFname):
+
+    originalImage = cv2.imread(filename)
+    img = cv2.imread(filename)
+
     img = cv2.medianBlur(img,7)
 
+    # uses canny edge detection at low thresholds to get all the edges of the image.
     edges = cv2.Canny(img,15,50,3,L2gradient=True)
-    # edges = cv2.Canny(img, 10, 300, 3, L2gradient=True)
 
+    # gets the size of the image and calculates the minimum threshold for contour areas.
     height, width, channels = img.shape
     imageArea = width * height
     areaThreshold = imageArea * (20/100)
 
     edges = cv2.convertScaleAbs(edges)
 
-
     kernel = np.ones((3,3), np.uint8)
+    # the image is dilated to be able to connect some of the contours.
     dilated_image = cv2.dilate(edges,kernel,iterations=2)
 
-    # cv2.imwrite(writeFname, dilated_image);
-
+    # The contours are found and sorted by largest to smallest
     contours, _  = cv2.findContours(dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours= sorted(contours, key = cv2.contourArea, reverse = True)
 
     contourList = []
 
+    # goes through all the contours found and gets rid of holes
+    # and finds areas larger than the threshold
     for c in contours:
         cArea = cv2.contourArea(c, True);
 
@@ -46,16 +47,11 @@ def fruitRecognition(originalFname, writeFname):
             if abs(cArea) > areaThreshold:
                 contourList.append(c)
 
-    # cv2.imwrite(writeFname, dilated_image);
-
-
-    mask = np.zeros(img_rgb.shape[:2],dtype=np.uint8)
+    # Once contours are selected they are filled in and drawn onto the mask image.
+    mask = np.zeros(originalImage.shape[:2],dtype=np.uint8)
     mask = cv2.drawContours(mask,contourList,-1,255,-1)
-    # mask.astype(np.int8)
-    # img_rgb.astype(np.int8)
-    new_image = cv2.bitwise_and(img_rgb,img_rgb,mask=mask)
-
-    # new_image = cv2.cvtColor(new_image, cv2.COLOR_GRAY2RGB)
+    new_image = cv2.bitwise_and(originalImage,originalImage,mask=mask)
+    # The mask image is used to single out the parts of the image needed.
 
     cv2.imwrite(writeFname, new_image);
 
@@ -110,16 +106,23 @@ def analyzeImages(imageList):
         else:
             print "Ripe"
 
-def convertToRedness(filename, writeFname):
 
-    redCh, greenCh, blueCh = imread_colour(filename)
+# performColourThreshold
+#
+# Description: takes a file name and performs colour thresholding for
+# greens yellows and brown colors in bananas
+
+def performColourThreshold(filename, writeFname):
 
     rgbIm = cv2.imread(filename)
 
+    # colors are converted from rgb to HSV
     hsvIm = cv2.cvtColor(rgbIm, cv2.COLOR_RGB2HSV)
 
+    # blur is performed to be able to more easily identify colours.
     hsvIm = cv2.blur(hsvIm,(5,5))
 
+    # the h s and v channels are split into each one.
     h, s, v = cv2.split(hsvIm)
 
     yellow = (40, 100, 40)
@@ -140,35 +143,33 @@ def convertToRedness(filename, writeFname):
     upperBrown = np.array([130,255,140])
     mask3 = cv2.inRange(hsvIm, lowerBrown, upperBrown)
 
-    # mask = cv2.inRange(hsvIm, yellow, green)
+    # each mask is created and added together to threshold different colour ranges in the image.
     mask = mask1+mask2 + mask3
 
+    # the processed image is modified with the mask to result in a threshold image.
     result = cv2.bitwise_and(rgbIm, rgbIm, mask=mask)
 
     cv2.imwrite(writeFname,result)
 
 
-
-imageList = [
-            "banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg",
-            "banana6.jpg",
+# MAIN
+imageList = ["banana1.jpg","banana2.jpg","banana3.jpeg","banana4.jpeg","banana5.jpg","banana6.jpg",
              "banana7.jpg","banana8.jpg","banana9.jpeg","banana10.jpg","banana11.jpg","banana12.jpg",
-             "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"
-             ]
+             "banana13.jpg","banana14.jpg","banana15.jpg","banana16.jpeg","banana17.jpeg"]
 
-
+# For each image it performs the pre processing and then performs the colour threshold.
 for imagePath in imageList:
     imageName = imagePath.split('.')
     originalFname = "images/fruit_Images/" + imageName[0] + "." + imageName[1]
     thresholdFname = "images/threshold/" + imageName[0] + "_threshold." + imageName[1]
     processedFname = "images/preprocessed/" + imageName[0] + "_preprocessed." + imageName[1]
-    circledFname = "images/circled/" + imageName[0] + "_circled." + imageName[1]
 
     print("Beggining banana threshold for " + imageName[0] + "\n")
 
-    fruitRecognition(originalFname, processedFname);
-    convertToRedness(processedFname, thresholdFname);
+    preProcessImage(originalFname, processedFname)
+    performColourThreshold(processedFname, thresholdFname)
 
 print("Finished threshold")
 
+# once the preProcessing and thresholding is done the images are analyzed and determined for their ripeness.
 analyzeImages(imageList)
