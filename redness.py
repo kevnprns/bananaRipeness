@@ -1,4 +1,4 @@
-originalImage#!/usr/local/bin/python2
+#!/usr/local/bin/python2
 
 from imageIO import *
 # from imenh_lib import *
